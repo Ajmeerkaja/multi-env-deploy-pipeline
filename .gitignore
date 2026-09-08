@@ -1,0 +1,18 @@
+# AWS / credentials
+.aws/
+*.pem
+*.env
+credentials
+*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Ansible
+*.retry
+vault_pass.txt
+
+# Python
+__pycache__/
+*.pyc
+venv/
