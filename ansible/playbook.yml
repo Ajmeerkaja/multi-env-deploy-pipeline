@@ -1,0 +1,73 @@
+---
+- name: Configure app server and deploy container
+  hosts: app_servers
+  become: yes
+
+  vars:
+    aws_region: ap-south-1
+    ecr_repo: "976193240813.dkr.ecr.ap-south-1.amazonaws.com/multi-env-app"
+    app_env: dev
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - unzip
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Install AWS CLI
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -o awscliv2.zip
+        ./aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Log in to ECR
+      shell: >
+        aws ecr get-login-password --region {{ aws_region }} |
+        docker login --username AWS --password-stdin {{ ecr_repo.split('/')[0] }}
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+
+    - name: Pull latest image from ECR
+      community.docker.docker_image:
+        name: "{{ ecr_repo }}:latest"
+        source: pull
+
+    - name: Run the app container
+      community.docker.docker_container:
+        name: multi-env-app
+        image: "{{ ecr_repo }}:latest"
+        state: started
+        restart_policy: always
+        ports:
+          - "5000:5000"
+        env:
+          APP_ENV: "{{ app_env }}"
