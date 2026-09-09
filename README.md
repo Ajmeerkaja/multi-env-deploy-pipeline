@@ -79,3 +79,44 @@ This project was built entirely using **GitHub Codespaces** (for code editing, G
   - **playbook.yml** — App deployment playbook (Docker, ECR pull, run container)
   - **jenkins-setup.yml** — Jenkins server bootstrap playbook
 - **Jenkinsfile** — Pipeline definition (build → push → deploy dev → approve → deploy prod)
+
+## Bringing the Project Back Up (After a Cost Teardown)
+
+All three EC2 environments (Dev, Prod, Jenkins) are destroyed between sessions to avoid unnecessary AWS cost. Nothing important is lost — Terraform, Ansible, and the Jenkinsfile are all version-controlled, and the Docker image is safely stored in ECR. To bring everything back:
+
+1. **Re-provision infrastructure**
+```bash
+   cd terraform/environments/dev && terraform init && terraform apply
+   cd ../prod && terraform init && terraform apply
+   cd ../jenkins && terraform init && terraform apply
+```
+   Note the new `app_public_ip` / `jenkins_public_ip` printed by each — these will be different from before, since new servers get new IPs.
+
+2. **Update Ansible inventory files** with the new IPs:
+   - `ansible/inventories/dev.ini`
+   - `ansible/inventories/prod.ini`
+   - `ansible/inventories/jenkins.ini`
+
+3. **Extract fresh SSH keys** for each environment:
+```bash
+   terraform output -raw private_key_pem > ../../../<env>-key.pem
+   chmod 400 ../../../<env>-key.pem
+```
+
+4. **Re-install Jenkins** on the new Jenkins server:
+```bash
+   ansible -i inventories/jenkins.ini jenkins_server -m ping
+   ansible-playbook -i inventories/jenkins.ini jenkins-setup.yml
+```
+
+5. **Re-add Jenkins credentials** (these lived inside the old Jenkins server and were destroyed with it — this is the only manual step that can't be automated from Git):
+   - `aws-creds` — AWS Access Key ID + Secret Access Key
+   - `dev-ssh-key` — the new `dev-key.pem` content
+   - `prod-ssh-key` — the new `prod-key.pem` content
+   - `github-creds` — GitHub username + Personal Access Token
+
+6. **Re-create the Jenkins Pipeline job**, pointing at the same GitHub repo and Jenkinsfile as before.
+
+7. **Run the pipeline** — it will build the latest code, push to ECR, and deploy to the fresh Dev and Prod servers.
+
+**Estimated time to fully restore:** ~30-40 minutes, mostly waiting on installs — a fraction of the original build time, since every hard problem was already solved once.
