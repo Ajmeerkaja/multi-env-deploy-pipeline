@@ -67,16 +67,15 @@ This project was built entirely using **GitHub Codespaces** (for code editing, G
 
 ## Repository Structure
 
-.
-├── app/                    # Flask application + Dockerfile
-├── terraform/
-│   ├── modules/ec2-app/    # Reusable EC2 + security group + key pair module
-│   └── environments/
-│       ├── dev/
-│       ├── prod/
-│       └── jenkins/
-├── ansible/
-│   ├── inventories/        # Per-environment host definitions
-│   ├── playbook.yml        # App deployment playbook (Docker, ECR pull, run container)
-│   └── jenkins-setup.yml   # Jenkins server bootstrap playbook
-└── Jenkinsfile              # Pipeline definition (build → push → deploy → approve → deploy)
+- **app/** — Flask application source code and Dockerfile
+- **terraform/**
+  - **modules/ec2-app/** — Reusable EC2 + security group + key pair module
+  - **environments/**
+    - **dev/** — Dev environment Terraform config
+    - **prod/** — Prod environment Terraform config
+    - **jenkins/** — Jenkins server Terraform config
+- **ansible/**
+  - **inventories/** — Per-environment host definitions (dev.ini, prod.ini, jenkins.ini)
+  - **playbook.yml** — App deployment playbook (Docker, ECR pull, run container)
+  - **jenkins-setup.yml** — Jenkins server bootstrap playbook
+- **Jenkinsfile** — Pipeline definition (build → push → deploy dev → approve → deploy prod)
