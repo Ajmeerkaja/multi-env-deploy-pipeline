@@ -48,7 +48,7 @@ pipeline {
                         sh """
                             rm -f ./dev-key.pem
                             cp \$DEV_KEY ./dev-key.pem
-                            chmod 400 ./dev-key.pem
+                            chmod 400 ../dev-key.pem
                             ansible-playbook -i inventories/dev.ini playbook.yml --extra-vars "app_env=dev ecr_repo=${ECR_REPO}"
                         """
                     }
@@ -72,7 +72,7 @@ pipeline {
                         sh """
                             rm -f ./prod-key.pem
                             cp \$PROD_KEY ./prod-key.pem
-                            chmod 400 ./prod-key.pem
+                            chmod 400 ../prod-key.pem
                             ansible-playbook -i inventories/prod.ini playbook.yml --extra-vars "app_env=prod ecr_repo=${ECR_REPO}"
                         """
                     }
