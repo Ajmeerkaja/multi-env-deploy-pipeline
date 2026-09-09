@@ -68,15 +68,15 @@ This project was built entirely using **GitHub Codespaces** (for code editing, G
 ## Repository Structure
 
 .
-├── app/ # Flask application + Dockerfile
+├── app/                    # Flask application + Dockerfile
 ├── terraform/
-│ ├── modules/ec2-app/ # Reusable EC2 + security group + key pair module
-│ └── environments/
-│ ├── dev/
-│ ├── prod/
-│ └── jenkins/
+│   ├── modules/ec2-app/    # Reusable EC2 + security group + key pair module
+│   └── environments/
+│       ├── dev/
+│       ├── prod/
+│       └── jenkins/
 ├── ansible/
-│ ├── inventories/ # Per-environment host definitions
-│ ├── playbook.yml # App deployment playbook (Docker, ECR pull, run container)
-│ └── jenkins-setup.yml # Jenkins server bootstrap playbook
-└── Jenkinsfile # Pipeline definition (build → push → deploy → approve → deploy)
+│   ├── inventories/        # Per-environment host definitions
+│   ├── playbook.yml        # App deployment playbook (Docker, ECR pull, run container)
+│   └── jenkins-setup.yml   # Jenkins server bootstrap playbook
+└── Jenkinsfile              # Pipeline definition (build → push → deploy → approve → deploy)
